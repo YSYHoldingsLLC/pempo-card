@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PEMPO Card</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Courier New', monospace; background: #FAF0E6; color: #2F2A25; min-height: 100vh; padding: 24px 20px 40px; }
+  .logo { text-align: center; font-size: 24px; font-weight: 700; color: #8B6B4A; margin-bottom: 24px; letter-spacing: 2px; }
+  .card { background: #F0DFC8; border: 0.5px solid #8B6B4A; border-radius: 16px; padding: 20px; margin-bottom: 20px; text-align: center; }
+  .avatar { width: 80px; height: 80px; border-radius: 50%; border: 2px solid #8B6B4A; margin: 0 auto 12px; background: #E8D5B7; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: #8B6B4A; overflow: hidden; }
+  .avatar img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; }
+  .owner-name { font-size: 20px; font-weight: 700; color: #2F2A25; margin-bottom: 4px; }
+  .owner-sub { font-size: 14px; color: #6F543A; }
+  .privacy { font-size: 11px; color: #8B6B4A; text-align: center; margin-bottom: 20px; line-height: 1.5; padding: 0 8px; }
+  .form-section { background: #F0DFC8; border: 0.5px solid #8B6B4A; border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+  .form-title { font-size: 16px; font-weight: 700; color: #2F2A25; margin-bottom: 4px; }
+  .form-subtitle { font-size: 13px; color: #6F543A; margin-bottom: 16px; }
+  label { display: block; font-size: 11px; font-weight: 700; color: #6F543A; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  input, select { width: 100%; padding: 12px 14px; background: #FAF0E6; border: 0.5px solid #8B6B4A; border-radius: 10px; font-family: 'Courier New', monospace; font-size: 15px; color: #2F2A25; margin-bottom: 14px; outline: none; -webkit-appearance: none; }
+  input:focus { border-color: #6F543A; border-width: 1.5px; }
+  .btn-primary { width: 100%; padding: 15px; background: #8B6B4A; color: #FAF0E6; border: none; border-radius: 12px; font-family: 'Courier New', monospace; font-size: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
+  .btn-secondary { width: 100%; padding: 13px; background: transparent; color: #8B6B4A; border: 0.5px solid #8B6B4A; border-radius: 12px; font-family: 'Courier New', monospace; font-size: 14px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
+  .btn-text { width: 100%; padding: 10px; background: transparent; color: #6F543A; border: none; font-family: 'Courier New', monospace; font-size: 13px; cursor: pointer; text-decoration: underline; }
+  .save-link { display: none; text-align: center; margin-top: 16px; }
+  .save-link a { color: #8B6B4A; font-size: 13px; text-decoration: underline; font-family: 'Courier New', monospace; cursor: pointer; }
+  .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #2F2A25; color: #FAF0E6; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-family: 'Courier New', monospace; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 100; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+  .success-state { text-align: center; padding: 20px; display: none; }
+  .success-icon { font-size: 48px; margin-bottom: 12px; }
+  .success-title { font-size: 18px; font-weight: 700; color: #2F2A25; margin-bottom: 8px; }
+  .success-sub { font-size: 14px; color: #6F543A; margin-bottom: 20px; }
+  .reminder-form { display: none; }
+  .no-thanks-state { display: none; }
+  .owner-info-mini { background: #F0DFC8; border: 0.5px solid #8B6B4A; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
+  .mini-avatar { width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid #8B6B4A; background: #E8D5B7; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: #8B6B4A; flex-shrink: 0; overflow: hidden; }
+  .mini-avatar img { width: 44px; height: 44px; object-fit: cover; border-radius: 50%; }
+  .mini-name { font-size: 15px; font-weight: 700; color: #2F2A25; }
+  .mini-sub { font-size: 12px; color: #6F543A; }
+  .download-pempo { text-align: center; margin-top: 24px; padding-top: 16px; border-top: 0.5px solid #C4A882; }
+  .download-pempo p { font-size: 12px; color: #8B6B4A; margin-bottom: 8px; }
+  .loading { text-align: center; padding: 60px 20px; }
+  .loading p { font-size: 16px; color: #8B6B4A; }
+  .error-state { text-align: center; padding: 60px 20px; }
+  .error-state h2 { font-size: 20px; font-weight: 700; color: #2F2A25; margin-bottom: 8px; }
+  .error-state p { font-size: 14px; color: #6F543A; }
+  #mainForm { display: none; }
+</style>
+</head>
+<body>
+
+<div class="logo">PEMPO</div>
+
+<div id="loadingState" class="loading">
+  <p>Loading...</p>
+</div>
+
+<div id="errorState" class="error-state" style="display:none;">
+  <h2>Card not found</h2>
+  <p>This card may no longer be active.</p>
+</div>
+
+<div id="ownerCard" class="card" style="display:none;">
+  <div class="avatar" id="ownerAvatar"></div>
+  <div class="owner-name" id="ownerName"></div>
+  <div class="owner-sub" id="ownerSub"></div>
+</div>
+
+<p class="privacy" id="privacyNotice" style="display:none;"></p>
+
+<div id="mainForm">
+  <div class="form-section">
+    <div class="form-title" id="formTitle"></div>
+    <div class="form-subtitle" id="formSubtitle"></div>
+    <div id="formFields"></div>
+    <button class="btn-primary" onclick="submitForm()">Share my details</button>
+    <button class="btn-secondary" onclick="showReminderForm()">Remind me later</button>
+    <button class="btn-text" onclick="noThanks()">No thank you</button>
+  </div>
+  <div id="saveContactLink" class="save-link">
+    <a onclick="downloadVCard()">Just want to save their contact? Tap here</a>
+  </div>
+</div>
+
+<div id="reminderForm" class="reminder-form">
+  <div class="form-section">
+    <div class="form-title">Remind me later</div>
+    <div class="form-subtitle">We will send you an email reminder</div>
+    <label>Your email</label>
+    <input type="email" id="reminderEmail" placeholder="you@email.com" />
+    <label>Remind me in</label>
+    <select id="remindHours">
+      <option value="2">2 hours</option>
+      <option value="6" selected>6 hours</option>
+      <option value="12">12 hours</option>
+      <option value="24">24 hours</option>
+    </select>
+    <button class="btn-primary" onclick="submitReminder()">Send reminder</button>
+    <button class="btn-text" onclick="showMainForm()">Go back</button>
+  </div>
+</div>
+
+<div id="noThanksState" class="no-thanks-state">
+  <div class="owner-info-mini" id="miniOwnerCard"></div>
+  <button class="btn-primary" onclick="downloadVCard()">Save their contact</button>
+  <button class="btn-text" onclick="showMainForm()">Actually, I will share my details</button>
+</div>
+
+<div id="successState" class="success-state">
+  <div class="success-icon">✓</div>
+  <div class="success-title">Details shared!</div>
+  <div class="success-sub" id="successSub"></div>
+  <button class="btn-primary" onclick="downloadVCard()">Save their contact</button>
+</div>
+
+<div class="download-pempo">
+  <p>Create your own digital contact card</p>
+  <button class="btn-secondary" onclick="window.open('https://pempo.app','_blank')">Get PEMPO</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://jkpxlaqqpcbhvtiqlmsy.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImprcHhsYXFxcGNiaHZ0aXFsbXN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNzk1MTEsImV4cCI6MjEwMDg1NTUxMX0.toMQEz70QjZXNqXcyA-gh75nSAAp7kKvLlABFJ0X6c4';
+
+let cardCode = '';
+let ownerData = null;
+let qrSettings = null;
+let profileData = null;
+
+async function supabaseFetch(path, options = {}) {
+  const res = await fetch(SUPABASE_URL + path, {
+    ...options,
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
+  });
+  if (!res.ok) return null;
+  return res.json();
+}
+
+function getInitials(name) {
+  if (!name) return 'P';
+  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function showMainForm() {
+  document.getElementById('mainForm').style.display = 'block';
+  document.getElementById('reminderForm').style.display = 'none';
+  document.getElementById('noThanksState').style.display = 'none';
+  document.getElementById('successState').style.display = 'none';
+}
+
+function showReminderForm() {
+  document.getElementById('mainForm').style.display = 'none';
+  document.getElementById('reminderForm').style.display = 'block';
+}
+
+function noThanks() {
+  document.getElementById('mainForm').style.display = 'none';
+  document.getElementById('noThanksState').style.display = 'block';
+  showToast('No problem!');
+}
+
+async function submitForm() {
+  const formFields = ['name','email','phone','company','title'];
+  const data = {};
+  formFields.forEach(f => {
+    const el = document.getElementById('field_' + f);
+    if (el) data[f] = el.value;
+  });
+
+  if (!data.name && !data.email && !data.phone) {
+    showToast('Please fill in at least one field');
+    return;
+  }
+
+  const res = await fetch(SUPABASE_URL + '/rest/v1/exchanges', {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal',
+    },
+    body: JSON.stringify({
+      card_code: cardCode,
+      scanner_name: data.name || null,
+      scanner_email: data.email || null,
+      scanner_phone: data.phone || null,
+      scanner_company: data.company || null,
+      scanner_title: data.title || null,
+      status: 'submitted',
+      created_at: new Date().toISOString(),
+    }),
+  });
+
+  if (res.ok) {
+    document.getElementById('mainForm').style.display = 'none';
+    document.getElementById('successState').style.display = 'block';
+    document.getElementById('successSub').textContent = (ownerData?.name || 'They') + ' will be in touch soon.';
+  } else {
+    showToast('Something went wrong. Please try again.');
+  }
+}
+
+async function submitReminder() {
+  const email = document.getElementById('reminderEmail').value;
+  const hours = document.getElementById('remindHours').value;
+
+  if (!email) {
+    showToast('Please enter your email');
+    return;
+  }
+
+  const res = await fetch(SUPABASE_URL + '/rest/v1/exchanges', {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal',
+    },
+    body: JSON.stringify({
+      card_code: cardCode,
+      reminder_email: email,
+      remind_after_hours: parseInt(hours),
+      status: 'reminder_pending',
+      created_at: new Date().toISOString(),
+    }),
+  });
+
+  if (res.ok) {
+    showToast('Reminder set! Check your email in ' + hours + ' hours.');
+    setTimeout(() => showMainForm(), 2000);
+  } else {
+    showToast('Could not set reminder. Please try again.');
+  }
+}
+
+async function downloadVCard() {
+  if (!profileData) {
+    showToast('Contact info not available');
+    return;
+  }
+
+  let vcard = 'BEGIN:VCARD\nVERSION:3.0\n';
+  if (profileData.name) vcard += 'FN:' + profileData.name + '\n';
+  if (profileData.personal_email) vcard += 'EMAIL;type=PERSONAL:' + profileData.personal_email + '\n';
+  if (profileData.personal_phone) vcard += 'TEL;type=CELL:' + profileData.personal_phone + '\n';
+  if (profileData.organization) vcard += 'ORG:' + profileData.organization + '\n';
+  if (profileData.title) vcard += 'TITLE:' + profileData.title + '\n';
+  if (profileData.work_phone) vcard += 'TEL;type=WORK:' + profileData.work_phone + '\n';
+  if (profileData.work_email) vcard += 'EMAIL;type=WORK:' + profileData.work_email + '\n';
+  if (profileData.linkedin_url) vcard += 'URL;type=LinkedIn:' + profileData.linkedin_url + '\n';
+  if (profileData.website) vcard += 'URL;type=Website:' + profileData.website + '\n';
+  if (profileData.instagram_username) vcard += 'URL;type=Instagram:https://instagram.com/' + profileData.instagram_username + '\n';
+  if (profileData.snapchat_username) vcard += 'URL;type=Snapchat:https://snapchat.com/add/' + profileData.snapchat_username + '\n';
+  vcard += 'END:VCARD';
+
+  const blob = new Blob([vcard], { type: 'text/vcard' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (profileData.name || 'contact') + '.vcf';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Contact saved!');
+}
+
+async function init() {
+  // Get card code from URL path /card/[code]
+  const pathParts = window.location.pathname.split('/');
+  cardCode = pathParts[pathParts.length - 1];
+
+  if (!cardCode || cardCode === '' || cardCode === 'index.html') {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('errorState').style.display = 'block';
+    return;
+  }
+
+  try {
+    // Fetch owner data
+    const users = await supabaseFetch('/rest/v1/users?card_code=eq.' + cardCode + '&select=*');
+    if (!users || users.length === 0) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('errorState').style.display = 'block';
+      return;
+    }
+
+    ownerData = users[0];
+    const deviceId = ownerData.device_id;
+
+    // Fetch profile
+    const profiles = await supabaseFetch('/rest/v1/profiles?device_id=eq.' + deviceId + '&select=*');
+    if (profiles && profiles.length > 0) {
+      profileData = profiles[0];
+    }
+
+    // Fetch QR settings
+    const settings = await supabaseFetch('/rest/v1/qr_settings?device_id=eq.' + deviceId + '&select=*');
+    qrSettings = settings && settings.length > 0 ? settings[0] : {
+      collect_name: true,
+      collect_email: true,
+      collect_phone: true,
+      collect_company: false,
+      collect_title: false,
+      remind_after_hours: 6,
+    };
+
+    // Render owner card
+    const ownerName = ownerData.name || profileData?.name || 'PEMPO User';
+    const ownerPhoto = ownerData.photo_url || profileData?.photo_url || '';
+    const ownerTitle = profileData?.title || '';
+    const ownerCompany = profileData?.organization || '';
+
+    const avatarEl = document.getElementById('ownerAvatar');
+    if (ownerPhoto) {
+      avatarEl.innerHTML = '<img src="' + ownerPhoto + '" alt="' + ownerName + '" />';
+    } else {
+      avatarEl.textContent = getInitials(ownerName);
+    }
+
+    document.getElementById('ownerName').textContent = ownerName;
+    const sub = [ownerTitle, ownerCompany].filter(Boolean).join(' · ');
+    if (sub) document.getElementById('ownerSub').textContent = sub;
+
+    document.getElementById('ownerCard').style.display = 'block';
+
+    // Privacy notice
+    const privacyEl = document.getElementById('privacyNotice');
+    privacyEl.textContent = 'By sharing your details, you agree to have your information shared with ' + ownerName + '. Your data is handled in accordance with PEMPO\'s privacy policy.';
+    privacyEl.style.display = 'block';
+
+    // Build form fields
+    document.getElementById('formTitle').textContent = 'Send your details back';
+    document.getElementById('formSubtitle').textContent = 'Let ' + ownerName + ' know who you are';
+
+    const fieldsContainer = document.getElementById('formFields');
+    fieldsContainer.innerHTML = '';
+
+    if (qrSettings.collect_name !== false) {
+      fieldsContainer.innerHTML += '<label>Your name</label><input type="text" id="field_name" placeholder="First and last name" autocomplete="name" />';
+    }
+    if (qrSettings.collect_email !== false) {
+      fieldsContainer.innerHTML += '<label>Your email</label><input type="email" id="field_email" placeholder="you@email.com" autocomplete="email" />';
+    }
+    if (qrSettings.collect_phone !== false) {
+      fieldsContainer.innerHTML += '<label>Your phone</label><input type="tel" id="field_phone" placeholder="+1 (555) 000-0000" autocomplete="tel" />';
+    }
+    if (qrSettings.collect_company) {
+      fieldsContainer.innerHTML += '<label>Company</label><input type="text" id="field_company" placeholder="Company name" />';
+    }
+    if (qrSettings.collect_title) {
+      fieldsContainer.innerHTML += '<label>Title</label><input type="text" id="field_title" placeholder="Your title" />';
+    }
+
+    // Mini owner card for no thanks state
+    const miniCard = document.getElementById('miniOwnerCard');
+    miniCard.innerHTML = '<div class="mini-avatar">' +
+      (ownerPhoto ? '<img src="' + ownerPhoto + '" alt="' + ownerName + '" />' : getInitials(ownerName)) +
+      '</div><div><div class="mini-name">' + ownerName + '</div>' +
+      (sub ? '<div class="mini-sub">' + sub + '</div>' : '') + '</div>';
+
+    document.getElementById('successSub').textContent = ownerName + ' will be in touch soon.';
+
+    // Show form
+    document.getElementById('loadingState').style.display = 'none';
+    showMainForm();
+
+    // Show save contact link after delay
+    setTimeout(() => {
+      document.getElementById('saveContactLink').style.display = 'block';
+    }, 4000);
+
+    // Try deep link to PEMPO app
+    setTimeout(() => {
+      const start = Date.now();
+      window.location.href = 'pempo://exchange/' + cardCode;
+      setTimeout(() => {
+        if (Date.now() - start < 2500) {
+          // App not installed - stay on page
+        }
+      }, 2000);
+    }, 800);
+
+  } catch (err) {
+    console.error('Init error:', err);
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('errorState').style.display = 'block';
+  }
+}
+
+init();
+</script>
+</body>
+</html>
