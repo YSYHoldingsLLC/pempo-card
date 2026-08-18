@@ -210,7 +210,7 @@ async function submitForm() {
   if (res.ok) {
     document.getElementById('mainForm').style.display = 'none';
     document.getElementById('successState').style.display = 'block';
-    document.getElementById('successSub').textContent = (ownerData?.name || 'They') + ' will be in touch soon.';
+    document.getElementById('successSub').textContent = (ownerData?.user_name || ownerData?.name || 'They') + ' will be in touch soon.';
   } else {
     showToast('Something went wrong. Please try again.');
   }
@@ -323,7 +323,7 @@ async function init() {
     };
 
     // Render owner card
-    const ownerName = ownerData.name || profileData?.name || 'PEMPO User';
+    const ownerName = ownerData.user_name || ownerData.name || profileData?.name || 'PEMPO User';
     const ownerPhoto = ownerData.photo_url || profileData?.photo_url || '';
     const ownerTitle = profileData?.title || '';
     const ownerCompany = profileData?.organization || '';
